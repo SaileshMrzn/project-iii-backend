@@ -9,7 +9,7 @@ export const analyzeMatch = async (pdfBuffer) => {
 
     const cleanedText = data.text
       .replace(/[ \t]+/g, " ")
-      .replace(/\r?\n/g, "")
+      .replace(/\r?\n/g, " ")
       .trim();
 
     // console.log(pages, "pp");
