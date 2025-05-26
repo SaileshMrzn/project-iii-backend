@@ -1,0 +1,58 @@
+const skills = [
+  "javascript",
+  "java",
+  "nodejs",
+  "python",
+  "typescript",
+  "react",
+  "angular",
+  "vue",
+  "spring",
+  "express",
+  "sql",
+  "nosql",
+  "mongodb",
+  "postgresql",
+  "docker",
+  "kubernetes",
+  "aws",
+  "azure",
+  "git",
+  "ci/cd",
+  "rest",
+  "graphql",
+  "html",
+  "css",
+  "linux",
+  "agile",
+  "scrum",
+];
+
+const experience = ["years"];
+
+const keywords = [
+  "team",
+  "communicate",
+  "leader",
+  "collaboration",
+  "problem-solving",
+  "initiative",
+  "ownership",
+  "adaptability",
+  "critical thinking",
+  "analytical",
+  "detail-oriented",
+  "deadline-driven",
+  "responsibility",
+  "fast-paced",
+  "independent",
+  "mentor",
+  "stakeholders",
+  "cross-functional",
+];
+
+export const scoreCategories = {
+  skills,
+  experience,
+  keywords,
+};
