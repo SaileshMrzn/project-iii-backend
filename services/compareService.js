@@ -7,8 +7,8 @@ export const parsePdf = async (pdfBuffer) => {
   try {
     const data = await pdfParse(pdfBuffer, { max: 2 });
 
-    const pages = data.text.split("\f");
-    console.log(typeof pages);
+    // const pages = data.text.split("\f");
+    // console.log(typeof pages);
 
     const cleanedText = data.text
       .replace(/[ \t]+/g, " ")
@@ -32,15 +32,6 @@ function tokenizeAndStem(text) {
     filtered,
     stemmed: filtered.map((token) => natural.PorterStemmer.stem(token)),
   };
-}
-
-function getStemToOriginalMap(tokens) {
-  const map = {};
-  tokens.forEach((token) => {
-    const stem = natural.PorterStemmer.stem(token);
-    if (!map[stem]) map[stem] = token;
-  });
-  return map;
 }
 
 function categorizeData(data) {
@@ -134,28 +125,3 @@ export function getMatchedData(jobDescription, resume) {
     },
   };
 }
-
-// export function getMissingKeywords(jobDescription, resume) {
-//   const jobTokens = jobDescription
-//     .toLowerCase()
-//     .replace(/[^a-z0-9\s]/g, "")
-//     .split(/\s+/);
-//   const resumeTokens = resume
-//     .toLowerCase()
-//     .replace(/[^a-z0-9\s]/g, "")
-//     .split(/\s+/);
-
-//   const jobStems = tokenizeAndStem(jobDescription);
-//   const resumeStems = new Set(tokenizeAndStem(resume));
-
-//   const stemToOriginal = getStemToOriginalMap(jobTokens);
-
-//   const missing = jobStems.filter((stem) => !resumeStems.has(stem));
-
-//   // Map back to original words for better display
-//   const missingKeywords = Array.from(
-//     new Set(missing.map((stem) => stemToOriginal[stem] || stem))
-//   );
-
-//   return missingKeywords;
-// }
