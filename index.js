@@ -18,7 +18,7 @@ const connectDB = async () => {
   }
 };
 
-connectDB();
+// connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

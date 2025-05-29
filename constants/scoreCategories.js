@@ -2,9 +2,11 @@ const skills = [
   "javascript",
   "java",
   "nodejs",
+  "node",
   "python",
   "typescript",
   "react",
+  "reactjs",
   "angular",
   "vue",
   "spring",
@@ -27,6 +29,22 @@ const skills = [
   "agile",
   "scrum",
 ];
+
+const skillAliasMap = {
+  reactjs: "react",
+  react: "react",
+  node: "nodejs",
+  nodejs: "nodejs",
+  cicd: "ci/cd",
+  ci_cd: "ci/cd",
+  github: "git",
+  git: "git",
+  js: "javascript",
+  ts: "typescript",
+  py: "python",
+  postgres: "postgresql",
+  mongo: "mongodb",
+};
 
 const experience = ["years"];
 
@@ -51,8 +69,59 @@ const keywords = [
   "cross-functional",
 ];
 
+const role = {
+  "Frontend Developer": [
+    "javascript",
+    "typescript",
+    "react",
+    "angular",
+    "vue",
+    "html",
+    "css",
+    "graphql",
+    "rest",
+    "git",
+  ],
+  "Backend Developer": [
+    "java",
+    "nodejs",
+    "python",
+    "spring",
+    "express",
+    "sql",
+    "nosql",
+    "mongodb",
+    "postgresql",
+    "rest",
+    "graphql",
+    "git",
+  ],
+  "DevOps Engineer": [
+    "docker",
+    "kubernetes",
+    "aws",
+    "azure",
+    "ci/cd",
+    "linux",
+    "git",
+  ],
+  "Cloud Engineer": ["aws", "azure", "docker", "kubernetes", "linux"],
+  "Data Engineer": [
+    "python",
+    "sql",
+    "nosql",
+    "mongodb",
+    "postgresql",
+    "aws",
+    "linux",
+  ],
+  "Agile Practitioner": ["agile", "scrum", "git", "ci/cd"],
+};
+
 export const scoreCategories = {
   skills,
   experience,
   keywords,
+  role,
+  skillAliasMap,
 };

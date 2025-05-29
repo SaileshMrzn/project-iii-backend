@@ -45,9 +45,12 @@ function categorizeData(data) {
 
   const allFilteredData = tokenizeAndStem(data).filtered;
 
+  // console.log(allFilteredData, "all");
+
   const filteredSkills = tokenizeAndStem(
     scoreCategories.skills.join(" ")
   ).filtered;
+  // console.log(filteredSkills, "filtered");
   const stemmedKeywords = tokenizeAndStem(
     scoreCategories.keywords.join(" ")
   ).stemmed;
@@ -95,11 +98,29 @@ export function calculateSimilarity(jobDescription, resume) {
   return magA && magB ? dot / (magA * magB) : 0;
 }
 
+function normalizeSkill(skill) {
+  return (
+    scoreCategories.skillAliasMap[skill.toLowerCase()] || skill.toLowerCase()
+  );
+}
+
+function getNormalizedIntersection(setA, setB) {
+  const normalizedA = new Set([...setA].map(normalizeSkill));
+  const normalizedB = new Set([...setB].map(normalizeSkill));
+
+  const intersection = new Set(
+    [...normalizedA].filter((item) => normalizedB.has(item))
+  );
+
+  return intersection;
+}
+
 export function getMatchedData(jobDescription, resume) {
   const categorizedJD = categorizeData(jobDescription);
   const categorizedResume = categorizeData(resume);
 
-  const matchedSkills = categorizedJD.skills.intersection(
+  const matchedSkills = getNormalizedIntersection(
+    categorizedJD.skills,
     categorizedResume.skills
   );
   const matchedKeywords = categorizedJD.keywords.intersection(
@@ -111,6 +132,27 @@ export function getMatchedData(jobDescription, resume) {
 
   const keywordsPercentageMatch =
     ([...matchedKeywords].length / [...categorizedJD.keywords].length) * 100;
+
+  const matchedRole = (() => {
+    let bestMatch = null;
+    let maxMatches = 0;
+
+    for (const [role, skills] of Object.entries(scoreCategories.role)) {
+      const matches = skills.filter((skill) =>
+        [...matchedSkills].includes(skill)
+      );
+
+      // console.log(matches, "matches");
+      if (matches.length > maxMatches) {
+        maxMatches = matches.length;
+        bestMatch = role;
+      }
+    }
+
+    return bestMatch;
+  })();
+
+  // console.log(matchedRole, "matchedRole");
 
   return {
     skillsMatch: {
