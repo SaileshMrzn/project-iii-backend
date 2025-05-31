@@ -5,6 +5,7 @@ import cors from "cors";
 
 import compareRoutes from "./routes/public/compareRoutes.js";
 import authRoutes from "./routes/auth/authRoutes.js";
+import scrapeRoutes from "./routes/scrapeRoute.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(express.json());
 
 app.use("/api/public", compareRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/scrape", scrapeRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
