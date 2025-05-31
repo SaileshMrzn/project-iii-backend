@@ -1,5 +1,11 @@
 import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
+import {
+  differenceInHours,
+  format,
+  formatDistanceStrict,
+  parse,
+} from "date-fns";
 
 const openBrowser = async (url) => {
   const browser = await puppeteer.launch({ headless: "new" });
@@ -78,11 +84,72 @@ export const scrapeKumariJobsService = async (keywords) => {
       jobNo: index + 1,
       title: jobTitle,
       company: companyName,
-      posted: deadline,
+      deadline: deadline,
       link: jobLink,
       source: "Kumari Jobs",
     });
   });
 
   return kumariJobs;
+};
+
+export const scrapeMeroJobsService = async (keywords) => {
+  const url = `https://merojob.com/search/?q=${keywords}`;
+
+  const content = await openBrowser(url);
+
+  const $ = cheerio.load(content);
+
+  const meroJobs = [];
+
+  $("#search_job .card").each((index, element) => {
+    const jobTitle = $(element).find(".text-left h1 a").text().trim();
+    const companyName =
+      $(element).find(".text-left h3 span").text().trim() ||
+      $(element).find(".text-left h3 a").text().trim();
+
+    const deadline = $(element)
+      .find('.card-footer meta[itemprop="validThrough"]')
+      .attr("content");
+
+    // get time left from deadline
+    let formattedDeadline;
+
+    if (!deadline) {
+      formattedDeadline = "";
+    } else {
+      const parsedDeadline = parse(
+        deadline,
+        "MMMM d, yyyy, h:mm a",
+        new Date()
+      );
+      const now = new Date();
+      if (parsedDeadline < now) {
+        formattedDeadline = "Deadline Passed";
+      } else {
+        const totalHours = differenceInHours(parsedDeadline, now);
+        const days = Math.floor(totalHours / 24);
+        const hours = totalHours % 24;
+
+        let result = "";
+        if (days > 0) result += `${days} day${days > 1 ? "s" : ""} `;
+        if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
+        formattedDeadline = `${result} left`;
+      }
+    }
+
+    const link = $(element).find(".text-left h1 a").attr("href");
+    const jobLink = `https://merojob.com${link}`;
+
+    meroJobs.push({
+      jobNo: index + 1,
+      title: jobTitle,
+      company: companyName,
+      deadline: formattedDeadline,
+      link: jobLink,
+      source: "Mero Jobs",
+    });
+  });
+
+  return meroJobs.filter((f) => !!f.title);
 };
