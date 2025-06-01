@@ -135,24 +135,33 @@ export function getMatchedData(jobDescription, resume) {
 
   const matchedRole = (() => {
     let bestMatch = null;
-    let maxMatches = 0;
+    let maxMatches = 1;
 
-    for (const [role, skills] of Object.entries(scoreCategories.role)) {
-      const matches = skills.filter((skill) =>
-        [...matchedSkills].includes(skill)
-      );
-
-      // console.log(matches, "matches");
-      if (matches.length > maxMatches) {
-        maxMatches = matches.length;
-        bestMatch = role;
+    const roleScores = Object.entries(scoreCategories.role).map(
+      ([role, roleSkills]) => {
+        const matchCount = roleSkills.filter((skill) =>
+          [...matchedSkills].includes(skill)
+        ).length;
+        return { role, matchCount };
       }
+    );
+
+    roleScores.sort((a, b) => b.matchCount - a.matchCount);
+
+    const topRoles = roleScores.filter((r) => r.matchCount > maxMatches);
+    const topRoleNames = topRoles.map((r) => r.role);
+
+    if (
+      topRoleNames.includes("Frontend Developer") &&
+      topRoleNames.includes("Backend Developer")
+    ) {
+      bestMatch = "FullStack Developer";
+    } else {
+      bestMatch = topRoleNames[0];
     }
 
     return bestMatch;
   })();
-
-  // console.log(matchedRole, "matchedRole");
 
   return {
     skillsMatch: {
@@ -165,5 +174,6 @@ export function getMatchedData(jobDescription, resume) {
       matchedKeywords: [...matchedKeywords],
       percentageMatch: keywordsPercentageMatch,
     },
+    matchedRole,
   };
 }

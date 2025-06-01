@@ -14,6 +14,7 @@ const skills = [
   "sql",
   "nosql",
   "mongodb",
+  "mongo",
   "postgresql",
   "docker",
   "kubernetes",
@@ -28,6 +29,12 @@ const skills = [
   "linux",
   "agile",
   "scrum",
+  "js",
+  "ts",
+  "py",
+  "postgres",
+  "git",
+  "ci_cd",
 ];
 
 const skillAliasMap = {
