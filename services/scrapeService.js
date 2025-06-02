@@ -50,7 +50,7 @@ export const scrapeLinkedinService = async (keywords) => {
     });
   });
 
-  return linkedinJobs;
+  return linkedinJobs.filter((f) => !f.title.includes("***"));
 };
 
 export const scrapeKumariJobsService = async (keywords) => {

@@ -54,3 +54,23 @@ export const scrapeMeroJobs = async (req, res) => {
     res.status(500).json(error.message);
   }
 };
+
+export const scrapeAll = async (req, res) => {
+  const { keywords } = req.query;
+
+  if (!keywords) {
+    res.status(401).json({ message: "No keywords provided" });
+  }
+
+  try {
+    const linkedinData = await scrapeLinkedinService(keywords);
+    const kumariJobsData = await scrapeKumariJobsService(keywords);
+    const meroJobsData = await scrapeMeroJobsService(keywords);
+
+    const data = [...linkedinData, ...kumariJobsData, ...meroJobsData];
+
+    res.json({ message: "Scrape Successful", data });
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
