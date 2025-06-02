@@ -41,29 +41,33 @@ function categorizeData(data) {
     keywords: null,
   };
 
-  const stemmer = natural.PorterStemmer;
+  // const stemmer = natural.PorterStemmer;
 
   const allFilteredData = tokenizeAndStem(data).filtered;
-
-  // console.log(allFilteredData, "all");
 
   const filteredSkills = tokenizeAndStem(
     scoreCategories.skills.join(" ")
   ).filtered;
-  // console.log(filteredSkills, "filtered");
-  const stemmedKeywords = tokenizeAndStem(
+
+  const filteredKeywords = tokenizeAndStem(
     scoreCategories.keywords.join(" ")
-  ).stemmed;
+  ).filtered;
+
+  const keywordsIncludingSkills = [...filteredSkills, ...filteredKeywords];
 
   categories.skills = new Set(
     allFilteredData.filter((word) => filteredSkills.includes(word))
   );
   categories.keywords = new Set(
-    allFilteredData.filter((word) => {
-      const stem = stemmer.stem(word);
-      return stemmedKeywords.includes(stem);
-    })
+    allFilteredData.filter((word) => keywordsIncludingSkills.includes(word))
   );
+
+  // categories.keywords = new Set(
+  //   allFilteredData.filter((word) => {
+  //     const stem = stemmer.stem(word);
+  //     return keywordsIncludingSkills.includes(stem);
+  //   })
+  // );
 
   return categories;
 }
@@ -135,7 +139,7 @@ export function getMatchedData(jobDescription, resume) {
 
   const matchedRole = (() => {
     let bestMatch = null;
-    let maxMatches = 1;
+    let maxMatches = 3;
 
     const roleScores = Object.entries(scoreCategories.role).map(
       ([role, roleSkills]) => {

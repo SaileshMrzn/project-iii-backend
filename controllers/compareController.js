@@ -21,7 +21,6 @@ export const compareResumeAndJob = async (req, res) => {
 
     res.json({
       message: "PDF parsed successfully",
-      parsedResume: resumeData,
       similarity,
       matchedData,
     });
