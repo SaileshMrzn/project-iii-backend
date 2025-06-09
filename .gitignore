@@ -2,3 +2,5 @@
 node_modules
 package-lock.json
 test.py
+hello.py
+constants/data.js

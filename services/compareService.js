@@ -1,7 +1,8 @@
 import pdfParse from "pdf-parse";
 import natural from "natural";
 import { removeStopwords } from "stopword";
-import { scoreCategories } from "../constants/scoreCategories.js";
+import { mapData, skillAliasMap } from "../constants/data.js";
+import network from "./brain.js";
 
 export const parsePdf = async (pdfBuffer) => {
   try {
@@ -34,42 +35,102 @@ function tokenizeAndStem(text) {
   };
 }
 
+// function categorizeData(data) {
+//   let categories = {
+//     skills: null,
+//     // experience: null, //todo: calculate experience logic
+//     keywords: null,
+//   };
+
+//   // const stemmer = natural.PorterStemmer;
+
+//   const allFilteredData = tokenizeAndStem(data).filtered;
+
+//   const filteredSkills = tokenizeAndStem(
+//     scoreCategories.skills.join(" ")
+//   ).filtered;
+
+//   const filteredKeywords = tokenizeAndStem(
+//     scoreCategories.keywords.join(" ")
+//   ).filtered;
+
+//   const keywordsIncludingSkills = [...filteredSkills, ...filteredKeywords];
+
+//   categories.skills = new Set(
+//     allFilteredData.filter((word) => filteredSkills.includes(word))
+//   );
+//   categories.keywords = new Set(
+//     allFilteredData.filter((word) => keywordsIncludingSkills.includes(word))
+//   );
+
+//   // categories.keywords = new Set(
+//   //   allFilteredData.filter((word) => {
+//   //     const stem = stemmer.stem(word);
+//   //     return keywordsIncludingSkills.includes(stem);
+//   //   })
+//   // );
+
+//   return categories;
+// }
+
 function categorizeData(data) {
-  let categories = {
-    skills: null,
-    // experience: null, //todo: calculate experience logic
-    keywords: null,
+  const categories = {
+    skills: [],
+    keywords: [],
   };
 
-  // const stemmer = natural.PorterStemmer;
+  const roles = {};
 
-  const allFilteredData = tokenizeAndStem(data).filtered;
+  const filtered = tokenizeAndStem(data).filtered;
 
-  const filteredSkills = tokenizeAndStem(
-    scoreCategories.skills.join(" ")
-  ).filtered;
+  filtered.filter(Boolean).forEach((word) => {
+    const input = { [word]: 1 };
 
-  const filteredKeywords = tokenizeAndStem(
-    scoreCategories.keywords.join(" ")
-  ).filtered;
+    const output = network.run(input);
 
-  const keywordsIncludingSkills = [...filteredSkills, ...filteredKeywords];
+    const [topMatch, confidence] = Object.entries(output).reduce(
+      (max, curr) => (curr[1] > max[1] ? curr : max),
+      ["", 0]
+    );
 
-  categories.skills = new Set(
-    allFilteredData.filter((word) => filteredSkills.includes(word))
-  );
-  categories.keywords = new Set(
-    allFilteredData.filter((word) => keywordsIncludingSkills.includes(word))
-  );
+    // calculate total number of role matches
+    if (confidence > 0.3 && topMatch !== "Soft Skill") {
+      if (!roles[topMatch]) {
+        roles[topMatch] = 1;
+      } else {
+        roles[topMatch] += 1;
+      }
+    }
 
-  // categories.keywords = new Set(
-  //   allFilteredData.filter((word) => {
-  //     const stem = stemmer.stem(word);
-  //     return keywordsIncludingSkills.includes(stem);
-  //   })
-  // );
+    if (confidence > 0.3 && mapData.skills.includes(topMatch)) {
+      categories.skills.push(word);
+    }
+    if (confidence > 0.3 && mapData.keywords.includes(topMatch)) {
+      categories.keywords.push(word);
+    }
+  });
 
-  return categories;
+  const rolesArr = Object.entries(roles);
+
+  // is full stack?
+  const role1 = rolesArr[0][0];
+  const value1 = rolesArr[0][1];
+
+  const role2 = rolesArr[1][0];
+  const value2 = rolesArr[1][1];
+
+  const isFrontendBackendPair =
+    (role1 === "Frontend Developer" && role2 === "Backend Developer") ||
+    (role1 === "Backend Developer" && role2 === "Frontend Developer");
+
+  const isFullStackDeveloper =
+    isFrontendBackendPair && Math.abs(value1 - value2) <= 3;
+
+  const finalRole = isFullStackDeveloper
+    ? "Full Stack Developer"
+    : rolesArr[0][0];
+
+  return { categories, finalRole };
 }
 
 export function calculateSimilarity(jobDescription, resume) {
@@ -103,9 +164,7 @@ export function calculateSimilarity(jobDescription, resume) {
 }
 
 function normalizeSkill(skill) {
-  return (
-    scoreCategories.skillAliasMap[skill.toLowerCase()] || skill.toLowerCase()
-  );
+  return skillAliasMap[skill.toLowerCase()] || skill.toLowerCase();
 }
 
 function getNormalizedIntersection(setA, setB) {
@@ -120,14 +179,15 @@ function getNormalizedIntersection(setA, setB) {
 }
 
 export function getMatchedData(jobDescription, resume) {
-  const categorizedJD = categorizeData(jobDescription);
-  const categorizedResume = categorizeData(resume);
+  const categorizedJD = categorizeData(jobDescription).categories;
+  const categorizedResume = categorizeData(resume).categories;
 
   const matchedSkills = getNormalizedIntersection(
     categorizedJD.skills,
     categorizedResume.skills
   );
-  const matchedKeywords = categorizedJD.keywords.intersection(
+  const matchedKeywords = getNormalizedIntersection(
+    categorizedJD.keywords,
     categorizedResume.keywords
   );
 
@@ -137,35 +197,7 @@ export function getMatchedData(jobDescription, resume) {
   const keywordsPercentageMatch =
     ([...matchedKeywords].length / [...categorizedJD.keywords].length) * 100;
 
-  const matchedRole = (() => {
-    let bestMatch = null;
-    let maxMatches = 3;
-
-    const roleScores = Object.entries(scoreCategories.role).map(
-      ([role, roleSkills]) => {
-        const matchCount = roleSkills.filter((skill) =>
-          [...matchedSkills].includes(skill)
-        ).length;
-        return { role, matchCount };
-      }
-    );
-
-    roleScores.sort((a, b) => b.matchCount - a.matchCount);
-
-    const topRoles = roleScores.filter((r) => r.matchCount > maxMatches);
-    const topRoleNames = topRoles.map((r) => r.role);
-
-    if (
-      topRoleNames.includes("Frontend Developer") &&
-      topRoleNames.includes("Backend Developer")
-    ) {
-      bestMatch = "FullStack Developer";
-    } else {
-      bestMatch = topRoleNames[0];
-    }
-
-    return bestMatch;
-  })();
+  const matchedRole = categorizeData(resume).finalRole;
 
   return {
     skillsMatch: {
