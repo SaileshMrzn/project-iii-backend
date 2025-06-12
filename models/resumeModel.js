@@ -8,7 +8,6 @@ const resumeSchema = new mongoose.Schema(
       required: true,
     },
     resume: { type: String, required: true },
-    matchedRole: { type: String },
     lastUsed: { type: Date, required: true },
   },
   { timestamps: true }
