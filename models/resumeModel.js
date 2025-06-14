@@ -5,9 +5,10 @@ const resumeSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
-    resume: { type: String, required: true },
+    hash: { type: String, required: true },
+    url: { type: String, required: true },
     lastUsed: { type: Date, required: true },
   },
   { timestamps: true }

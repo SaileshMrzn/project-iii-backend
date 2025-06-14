@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
-import streamifier from "streamifier";
 import Resume from "../models/resumeModel.js";
+import sha256 from "crypto-js/sha256.js";
+import WordArray from "crypto-js/lib-typedarrays.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,31 +17,40 @@ export const uploadResume = async (req, res) => {
       res.status(401).json({ message: "Please upload a resume" });
     }
 
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: "raw",
-        public_id: `resumes/${Date.now()}-${resume.originalname}`,
-      },
-      async (error, result) => {
-        if (error) {
-          console.error(error);
-          return res.status(500).send("Upload error");
-        }
+    const base64string = `data:${
+      resume.mimetype
+    };base64,${resume.buffer.toString("base64")}`;
 
-        await Resume.create({
-          user: "",
-          resume: result.secure_url,
-          lastUsed: Date.now(),
-        });
+    // generate hash
+    function bufferToWordArray(buf) {
+      return WordArray.create(buf);
+    }
 
-        return res.status(200).json({
-          url: result.secure_url,
-          public_id: result.public_id,
-        });
-      }
-    );
+    const fileBuffer = resume.buffer;
+    const wordArray = bufferToWordArray(fileBuffer);
+    const hashDigest = sha256(wordArray).toString();
 
-    streamifier.createReadStream(resume.buffer).pipe(stream);
+    const alreadyExists = await Resume.findOne({ hash: hashDigest });
+
+    if (alreadyExists) {
+      res.status(200).json({ message: "Duplicate resume" });
+      return;
+    }
+
+    const result = await cloudinary.uploader.upload(base64string, {
+      resource_type: "raw",
+      folder: "resumes",
+      public_id: `${Date.now()}-${resume.originalname.split(".")[0]}.pdf`,
+    });
+
+    const resumeRes = await Resume.create({
+      // user: "",
+      hash: hashDigest,
+      url: result.secure_url,
+      lastUsed: new Date().toISOString(),
+    });
+
+    res.status(200).json({ message: "Resume added", resumeRes });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
