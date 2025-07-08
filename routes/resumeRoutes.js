@@ -4,6 +4,6 @@ import upload from "../middlewares/multer.js";
 
 const router = e.Router();
 
-router.post("/cloudinary/resume", upload.single("resume"), uploadResume);
+router.post("/cloudinary/resume", upload, uploadResume);
 
 export default router;

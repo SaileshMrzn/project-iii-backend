@@ -112,12 +112,23 @@ function categorizeData(data) {
 
   const rolesArr = Object.entries(roles);
 
-  // is full stack?
-  const role1 = rolesArr[0][0];
-  const value1 = rolesArr[0][1];
+  // Default values if no roles are found
+  let role1 = "";
+  let value1 = 0;
+  let role2 = "";
+  let value2 = 0;
 
-  const role2 = rolesArr[1][0];
-  const value2 = rolesArr[1][1];
+  // Safely access first role if it exists
+  if (rolesArr.length > 0) {
+    role1 = rolesArr[0][0];
+    value1 = rolesArr[0][1];
+  }
+
+  // Safely access second role if it exists
+  if (rolesArr.length > 1) {
+    role2 = rolesArr[1][0];
+    value2 = rolesArr[1][1];
+  }
 
   const isFrontendBackendPair =
     (role1 === "Frontend Developer" && role2 === "Backend Developer") ||
@@ -126,9 +137,10 @@ function categorizeData(data) {
   const isFullStackDeveloper =
     isFrontendBackendPair && Math.abs(value1 - value2) <= 3;
 
+  // If no roles were detected, return "Unknown" instead of empty string
   const finalRole = isFullStackDeveloper
     ? "Full Stack Developer"
-    : rolesArr[0][0];
+    : role1 || "Unknown";
 
   return { categories, finalRole };
 }
@@ -160,7 +172,8 @@ export function calculateSimilarity(jobDescription, resume) {
     Object.values(vecB).reduce((sum, val) => sum + val * val, 0)
   );
 
-  return magA && magB ? dot / (magA * magB) : 0;
+  // Convert similarity score to percentage with 2 decimal places
+  return magA && magB ? Number(((dot / (magA * magB)) * 100).toFixed(2)) : 0;
 }
 
 function normalizeSkill(skill) {
@@ -191,11 +204,19 @@ export function getMatchedData(jobDescription, resume) {
     categorizedResume.keywords
   );
 
-  const skillsPercentageMatch =
-    ([...matchedSkills].length / [...categorizedJD.skills].length) * 100;
+  const skillsPercentageMatch = Number(
+    (
+      ([...matchedSkills].length / (categorizedJD.skills.length || 1)) *
+      100
+    ).toFixed(2)
+  );
 
-  const keywordsPercentageMatch =
-    ([...matchedKeywords].length / [...categorizedJD.keywords].length) * 100;
+  const keywordsPercentageMatch = Number(
+    (
+      ([...matchedKeywords].length / (categorizedJD.keywords.length || 1)) *
+      100
+    ).toFixed(2)
+  );
 
   const matchedRole = categorizeData(resume).finalRole;
 

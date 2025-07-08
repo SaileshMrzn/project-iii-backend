@@ -4,6 +4,6 @@ import upload from "../../middlewares/multer.js";
 
 const router = e.Router();
 
-router.post("/compare", upload.single("resume"), compareResumeAndJob);
+router.post("/compare", upload, compareResumeAndJob);
 
 export default router;
