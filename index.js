@@ -34,6 +34,8 @@ app.use(
   })
 );
 
+app.use(express.json());
+
 app.use("/api/public", compareRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/scrape", scrapeRoutes);
