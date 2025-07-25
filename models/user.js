@@ -2,11 +2,12 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  googleId: { type: String, unique: true, sparse: true }, // sparse allows for multiple null values
+  // authId: { type: String, unique: true, sparse: true }, // sparse allows for multiple null values
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  picture: String,
+  image: String,
   password: { type: String },
+  // provider: { type: String },
 });
 
 // Hash password before saving
