@@ -1,11 +1,6 @@
 import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
-import {
-  differenceInHours,
-  format,
-  formatDistanceStrict,
-  parse,
-} from "date-fns";
+import { differenceInHours, parse } from "date-fns";
 
 const openBrowser = async (url) => {
   const browser = await puppeteer.launch({ headless: "new" });
@@ -36,6 +31,18 @@ export const scrapeLinkedinService = async (keywords) => {
       .find(".base-search-card__subtitle a")
       .text()
       .trim();
+
+    const logoElement = parent.find(".search-entity-media img");
+    const companyLogo =
+      logoElement.attr("src") ||
+      logoElement.attr("data-delayed-url") ||
+      logoElement.attr("data-ghost-url");
+
+    const companyLocation = $(element)
+      .find(".base-search-card__metadata .job-search-card__location")
+      .text()
+      .trim();
+
     const timeAgo =
       $(element).find(".job-search-card__listdate").text().trim() ||
       $(element).find(".job-search-card__listdate--new").text().trim();
@@ -43,7 +50,11 @@ export const scrapeLinkedinService = async (keywords) => {
     linkedinJobs.push({
       jobNo: index + 1,
       title: jobTitle,
-      company: companyName,
+      company: {
+        name: companyName,
+        location: companyLocation,
+        logo: companyLogo,
+      },
       posted: timeAgo,
       link: jobLink,
       source: "LinkedIn",
@@ -78,12 +89,17 @@ export const scrapeKumariJobsService = async (keywords) => {
       .text()
       .trim();
 
+    const companyLogo = $(element).find(".cardone__body--img img").attr("src");
+
     const jobLink = $(element).find(".description__two--foot a").attr("href");
 
     kumariJobs.push({
       jobNo: index + 1,
       title: jobTitle,
-      company: companyName,
+      company: {
+        name: companyName,
+        logo: companyLogo,
+      },
       deadline: deadline,
       link: jobLink,
       source: "Kumari Jobs",
@@ -104,9 +120,18 @@ export const scrapeMeroJobsService = async (keywords) => {
 
   $("#search_job .card").each((index, element) => {
     const jobTitle = $(element).find(".text-left h1 a").text().trim();
+
     const companyName =
       $(element).find(".text-left h3 span").text().trim() ||
       $(element).find(".text-left h3 a").text().trim();
+
+    const companyLogo = $(element).find(".card-body img").attr("src");
+    const finalCompanyLogo = `https://merojob.com${companyLogo}`;
+
+    const companyLocation = $(element)
+      .find('[itemprop="addressLocality"]')
+      .text()
+      .trim();
 
     const deadline = $(element)
       .find('.card-footer meta[itemprop="validThrough"]')
@@ -144,7 +169,11 @@ export const scrapeMeroJobsService = async (keywords) => {
     meroJobs.push({
       jobNo: index + 1,
       title: jobTitle,
-      company: companyName,
+      company: {
+        name: companyName,
+        logo: finalCompanyLogo,
+        location: companyLocation,
+      },
       deadline: formattedDeadline,
       link: jobLink,
       source: "Mero Jobs",
