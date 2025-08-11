@@ -1,7 +1,7 @@
 import pdfParse from "pdf-parse";
 import natural from "natural";
 import { removeStopwords } from "stopword";
-import { mapData, skillAliasMap } from "../../data.js;
+import { mapData, skillAliasMap } from "../../data.js";
 import network from "./brain.js";
 
 export const parsePdf = async (pdfBuffer) => {
