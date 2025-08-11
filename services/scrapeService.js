@@ -5,7 +5,7 @@ import { differenceInHours, parse } from "date-fns";
 const openBrowser = async (url) => {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: "networkidle2" });
+  await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
   const content = await page.content();
 
