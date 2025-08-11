@@ -1,11 +1,8 @@
 import pdfParse from "pdf-parse";
 import natural from "natural";
 import { removeStopwords } from "stopword";
-//import { mapData, skillAliasMap } from "../constants/data.js";
+import { mapData, skillAliasMap } from "../data.js";
 import network from "./brain.js";
-
-const data = await import('/etc/secrets/data.js');
-const { mapData, skillAliasMap } = data;
 
 export const parsePdf = async (pdfBuffer) => {
   try {
